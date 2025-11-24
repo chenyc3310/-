@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>抽獎器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        .spinning {
+            animation: spin 2s linear infinite;
+        }
+        
+        .result-bounce {
+            animation: bounce 0.6s ease-in-out;
+        }
+        
+        .prize-card {
+            transition: all 0.3s ease;
+        }
+        
+        .prize-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 p-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- 標題 -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4 drop-shadow-lg">🎰 抽獎器 🎰</h1>
+            <p class="text-xl text-white/90">點擊按鈕開始抽獎！</p>
+        </div>
+        
+        <!-- 抽獎區域 -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 mb-8">
+            <div class="text-center">
+                <!-- 抽獎輪盤 -->
+                <div class="relative mb-8">
+                    <div id="wheel" class="w-48 h-48 mx-auto bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-6xl shadow-lg">
+                        🎲
+                    </div>
+                </div>
+                
+                <!-- 抽獎按鈕 -->
+                <button id="drawButton" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-4 px-12 rounded-full text-xl shadow-lg transform transition-all duration-200 hover:scale-105 active:scale-95 mb-8">
+                    開始抽獎！
+                </button>
+                
+                <!-- 結果顯示 -->
+                <div id="result" class="hidden">
+                    <div class="bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-2xl font-bold mb-2">🎉 恭喜你抽中了 🎉</h2>
+                        <div id="prizeText" class="text-3xl font-bold mb-4"></div>
+                        <button id="againButton" class="bg-white text-purple-600 font-bold py-2 px-6 rounded-full hover:bg-gray-100 transition-colors">
+                            再抽一次
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 獎項展示 -->
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="prize-card bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center shadow-lg">
+                <div class="text-4xl mb-3">🍺</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">獎項一</h3>
+                <p class="text-purple-600 font-semibold">酒鬼</p>
+            </div>
+            
+            <div class="prize-card bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center shadow-lg">
+                <div class="text-4xl mb-3">💔</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">獎項二</h3>
+                <p class="text-purple-600 font-semibold">喝心酸</p>
+            </div>
+            
+            <div class="prize-card bg-white/90 backdrop-blur-sm rounded-2xl p-6 text-center shadow-lg">
+                <div class="text-4xl mb-3">🍻</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">獎項三</h3>
+                <p class="text-purple-600 font-semibold">啤酒再苦也沒人生苦</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const prizes = [
+            { name: "酒鬼", emoji: "🍺" },
+            { name: "喝心酸", emoji: "💔" },
+            { name: "啤酒再苦也沒人生苦", emoji: "🍻" }
+        ];
+        
+        const drawButton = document.getElementById('drawButton');
+        const wheel = document.getElementById('wheel');
+        const result = document.getElementById('result');
+        const prizeText = document.getElementById('prizeText');
+        const againButton = document.getElementById('againButton');
+        
+        let isDrawing = false;
+        
+        drawButton.addEventListener('click', startDraw);
+        againButton.addEventListener('click', resetDraw);
+        
+        function startDraw() {
+            if (isDrawing) return;
+            
+            isDrawing = true;
+            drawButton.disabled = true;
+            drawButton.textContent = '抽獎中...';
+            result.classList.add('hidden');
+            
+            // 開始旋轉動畫
+            wheel.classList.add('spinning');
+            
+            // 2.5秒後停止並顯示結果
+            setTimeout(() => {
+                wheel.classList.remove('spinning');
+                showResult();
+            }, 2500);
+        }
+        
+        function showResult() {
+            // 隨機選擇獎項
+            const randomIndex = Math.floor(Math.random() * prizes.length);
+            const selectedPrize = prizes[randomIndex];
+            
+            // 更新輪盤顯示
+            wheel.textContent = selectedPrize.emoji;
+            wheel.classList.add('result-bounce');
+            
+            // 顯示結果
+            prizeText.innerHTML = `${selectedPrize.emoji} ${selectedPrize.name}`;
+            result.classList.remove('hidden');
+            
+            // 重置狀態
+            setTimeout(() => {
+                wheel.classList.remove('result-bounce');
+                isDrawing = false;
+            }, 600);
+        }
+        
+        function resetDraw() {
+            drawButton.disabled = false;
+            drawButton.textContent = '開始抽獎！';
+            wheel.textContent = '🎲';
+            result.classList.add('hidden');
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a39a745a3693339',t:'MTc2Mzk5NTE0Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
